@@ -1,130 +1,115 @@
-# Pizza Sales Analysis Using SQL
+# ⏱️ High-Velocity Demand Forecasting & Perishable Inventory Analysis (SQL)
 
-## Project Overview
+## 📌 Project Overview
 
-This project focuses on analyzing a relational pizza sales database using SQL to extract meaningful business insights.  
-The objective was to evaluate revenue performance, customer ordering patterns, product popularity, and category-wise sales distribution using structured queries.
-The analysis was performed using MySQL Workbench on transactional sales data.
+This project analyzes a high-frequency relational transactional database (**21,350 orders** and **49,574 units**) using **MySQL** to solve core **Quick-Commerce / Perishable Supply Chain, Hourly Demand Forecasting, and Shift Capacity Planning** challenges.
 
-## Dataset Description
+In perishable and fast-turnaround supply chains, inaccurate demand forecasting causes either costly ingredient spoilage or peak-hour fulfillment bottlenecks. The objective of this analysis was to map **intraday demand peaks, category-level ingredient turnover, and SKU ABC contribution** to optimize raw material procurement and workforce shift scheduling.
 
-The database consists of four related tables:
+---
 
-- Orders  
-- Order_Details  
-- Pizzas  
-- Pizza_Types  
+## 🗄️ Relational Schema & Supply Chain Data Model
 
-### Table Relationships
+The database consists of four normalized tables connecting **Order Timestamps**, **Line-Item Fulfillment**, and **SKU Master Data**:
 
-Orders → Order_Details → Pizzas → Pizza_Types  
+- **`Orders` (Order Fulfillment Header):** Captures order timestamps (`date`, `time`) for intraday and seasonal demand velocity tracking.
+- **`Order_Details` (Line-Item Demand):** Tracks exact unit quantities fulfilled per order line.
+- **`Pizzas` (SKU & Pricing Master):** Links specific SKU sizes/variants to unit pricing.
+- **`Pizza_Types` (Product Category & BOM Grouping):** Categorizes SKUs into 4 core operational groups (`Classic`, `Supreme`, `Veggie`, `Chicken`) for raw material and prep planning.
 
-The dataset contains order timestamps, pizza categories, pricing information, and quantity sold.
+### Entity Relationship Flow
+```
+Orders (Timestamps) ──► Order_Details (Unit Demand) ──► Pizzas (SKU Variants) ──► Pizza_Types (Category/BOM)
+```
 ![Table_Structure](screenshots/table_structure.pdf)
-## Tools & Technologies Used
 
-- MySQL Workbench  
-- SQL  
-- Joins (INNER JOIN)  
-- Aggregations (SUM, COUNT, AVG)  
-- Subqueries  
-- Window Functions (SUM() OVER)  
-- Ranking Functions (RANK() with PARTITION BY)
+---
 
-## Business Problems Solved
+## 🛠️ Tools & SQL Techniques Applied
 
-### 🔹 Basic Analysis
-- Total number of orders placed
-- Total revenue generated
-- Highest priced pizza
-- Top 5 most ordered pizza types
+- **Database Engine:** MySQL Workbench
+- **Core SQL Operations:** Multi-table `INNER JOIN`s, Time-Based Extractions (`HOUR()`, `DATE()`), Aggregations (`SUM`, `COUNT`, `AVG`)
+- **Advanced Analytics:** Subqueries, Window Functions (`SUM() OVER` for cumulative demand trajectories), and Ranking Functions (`RANK() OVER (PARTITION BY ...)` for category-level SKU prioritization)
 
-### 🔹 Intermediate Analysis
-- Category-wise quantity sold
-- Hourly distribution of orders
-- Average pizzas ordered per day
-- Top 3 pizzas by revenue
+---
 
-### 🔹 Advanced Analysis
-- Percentage contribution of each pizza to total revenue
-- Cumulative revenue analysis over time
-- Top 3 revenue-generating pizzas within each category
+## 🎯 Supply Chain & Operations Problems Solved
 
-## Sample Query Results
+### 🔹 Intraday Demand Velocity & Capacity Planning
+- **Hourly Order Distribution:** Mapped order arrival rates across 24-hour cycles to pinpoint peak fulfillment windows and prevent kitchen/dispatch bottlenecks.
+- **Average Daily Throughput:** Calculated baseline daily unit demand (**138 units/day**) to establish daily par levels for perishable raw materials.
 
-### Total Orders Placed
+### 🔹 Perishable Inventory & Category Turnover
+- **Category-Wise Consumption Volume:** Quantified unit movement across 4 product categories (`Classic`, `Supreme`, `Veggie`, `Chicken`) to align raw ingredient procurement with actual consumption velocity.
+- **Peak-Item Stock Prioritization:** Identified top-moving SKUs by unit volume to prevent stock-outs of high-turnover ingredients during rush hours.
+
+### 🔹 ABC SKU Classification & Cumulative Demand
+- **SKU Revenue & Volume Contribution (%):** Calculated each SKU's percentage contribution to total throughput to separate **Class-A core items** from slow-moving **Class-C items**.
+- **Category-Level Top Performers:** Used `RANK() OVER (PARTITION BY category)` to isolate the top 3 SKUs within each category for targeted inventory buffering.
+- **Cumulative Throughput Trajectory:** Tracked cumulative demand over time using running-total window functions to monitor long-term growth trends.
+
+---
+
+## 📊 Key Operational & Demand Metrics
+
+| Supply Chain KPI | Finding / Metric |
+| :--- | :--- |
+| **Total Orders Fulfilled** | **21,350** high-frequency orders |
+| **Total Revenue / Throughput** | **$817,860** |
+| **Baseline Daily Demand** | **138 units/day** average throughput |
+| **Primary Peak Window (Lunch)** | **12:00 PM** (2,520 orders — highest hourly surge) |
+| **Secondary Peak Window (Dinner)** | **6:00 PM** (2,399 orders) |
+| **Off-Peak Window** | Sharp demand drop-off after **10:00 PM** |
+| **Highest Unit-Value SKU** | *The Greek Pizza* (Classic Category) — **$35.95** |
+
+---
+
+## 🔍 Key Supply Chain & Inventory Insights
+
+### 1. Intraday Demand Surges & Shift Bottlenecks
+- **Bimodal Demand Curve:** Order volume spikes sharply at **12:00 PM (2,520 orders)** and **6:00 PM (2,399 orders)**, before dropping off significantly after **10:00 PM**.
+- **Operational Impact:** Flat staffing and uniform prep schedules create fulfillment delays during lunch/dinner peaks and idle labor/spoilage late at night.
+
+### 2. Category-Level Ingredient Velocity
+| Category | Total Units Sold | Inventory & Procurement Priority |
+| :--- | :--- | :--- |
+| **Classic** | **14,888** | **Highest Unit Turnover:** Requires highest daily par levels and frequent replenishment |
+| **Supreme** | **11,987** | **High Multi-Ingredient Prep:** Steady demand requiring balanced component stocking |
+| **Veggie** | **11,649** | **Perishable Produce Sensitivity:** Requires tight FEFO (First-Expired, First-Out) rotation |
+| **Chicken** | **11,050** | **High Revenue-Per-Unit Driver:** Top 3 revenue SKUs all belong to the Chicken category |
+
+### 3. Top-Performing SKUs (Class-A Inventory)
+- **By Unit Velocity (Replenishment Focus):** *The Classic Deluxe* (2,453 units), *The Barbecue Chicken* (2,432 units), *The Hawaiian* (2,422 units), *The Pepperoni* (2,418 units), and *The Thai Chicken* (2,371 units).
+- **By Revenue Contribution:** *Thai Chicken* (**5.31%**), *Barbecue Chicken* (**5.23%**), and *California Chicken* (**5.06%**) lead revenue generation—making chicken protein stock-outs the highest financial risk.
+
+---
+
+## 📸 Query Execution & Output Previews
+
+### Total Orders Fulfilled
 ![Total Orders](screenshots/total_orders.png)
 
-### Total Revenue Generated
+### Total Throughput Value
 ![Total Revenue](screenshots/total_revenue.png)
 
-### Hourly Distribution of Orders
+### Intraday Hourly Demand Distribution
 ![Hourly Distribution](screenshots/hourly_distribution.png)
 
-### Cumulative Revenue Over Time
+### Cumulative Demand Trajectory Over Time
 ![Cumulative Revenue](screenshots/cumulative_revenue.png)
 
-## Key Sales & Performance Metrics
+---
 
-- Total Orders Placed: 21,350
-- Total Revenue Generated: 817,860
-- Average Daily Demand: 138 pizzas per day
-- Highest Priced Item: The Greek Pizza (Classic Category) priced at 35.95
+## 💡 Actionable Supply Chain Recommendations
 
-## Product & Category Performance
+1. **Dynamic Shift & Prep Scheduling:** Align workforce shifts and pre-batch ingredient prep **60–90 minutes ahead of the 12:00 PM and 6:00 PM surges**, while scaling down active prep after **9:30 PM** to minimize end-of-day perishable waste.
+2. **Protein Safety Stock Protection:** Maintain strict safety stock buffers for **Chicken category ingredients**, as the top 3 revenue-generating SKUs (*Thai, Barbecue, and California Chicken*) rely on this single protein stream.
+3. **FEFO Perishable Rotation:** Enforce **First-Expired, First-Out (FEFO)** inventory controls on *Veggie* and *Classic* toppings (which drive 14,888 units) to reduce spoilage while maintaining 100% fill rates.
+4. **SKU Rationalization & Combo Bundling:** Bundle slow-moving Class-C menu variants with high-velocity *Classic Deluxe* or *Pepperoni* orders to accelerate ingredient turnover without expanding cold-storage requirements.
 
-### 🔹 Top 5 Pizzas by Quantity Sold
+---
 
-1. The Classic Deluxe Pizza – 2,453
-2. The Barbecue Chicken Pizza – 2,432
-3. The Hawaiian Pizza – 2,422
-4. The Pepperoni Pizza – 2,418
-5. The Thai Chicken Pizza – 2,371
+## 📂 Repository Structure
 
-### 🔹 Category-wise Quantity Sold
-
-- Classic: 14,888
-- Supreme: 11,987
-- Veggie: 11,649
-- Chicken: 11,050
-
-## Operational Insights
-
-- Peak Lunch Hour: 12:00 PM (2,520 orders)
-- Peak Dinner Hour: 6:00 PM (2,399 orders)
-- Order volume drops significantly after 10:00 PM
-
-This indicates strong mid-day and evening demand patterns.
-
-## Revenue Insights
-
-### 🔹 Top 3 Pizzas by Revenue
-
-1. Thai Chicken Pizza – 43,434.25
-2. Barbecue Chicken Pizza – 42,768
-3. California Chicken Pizza – 41,409.5
-
-### 🔹 Revenue Contribution (Top Performers)
-
-- Thai Chicken Pizza: ~5.31%
-- Barbecue Chicken Pizza: ~5.23%
-- California Chicken Pizza: ~5.06%
-- Classic Deluxe Pizza: ~4.67%
-- Spicy Italian Pizza: ~4.26%
-
-## Advanced Analysis
-
-- Cumulative revenue trend was analyzed using window functions.
-- Category-wise top 3 revenue-generating pizzas were identified using RANK() with PARTITION BY.
-  
-## Business Recommendations
-
-- Allocate additional staff during peak lunch and dinner hours.
-- Focus promotional campaigns on high-performing pizzas.
-- Optimize inventory planning based on category demand trends.
-- Develop marketing strategies to boost underperforming categories.
-
-## Project Files
-
-- analysis_queries.sql → Contains all SQL queries used for analysis.
-- screenshots/ → Contains selected result outputs
+- `analysis_queries.sql` — Complete SQL script containing hourly demand distribution, category turnover, window functions, and ranking queries.
+- `screenshots/` — Query output visualizations and relational schema diagram.
